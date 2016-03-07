@@ -1,0 +1,123 @@
+#!/usr/bin/env ruby
+
+require "io/wait"
+require "optparse"
+require "string"
+require "thieve"
+
+class ThieveExit
+    GOOD = 0
+    INVALID_OPTION = 1
+    INVALID_ARGUMENT = 2
+    MISSING_ARGUMENT = 3
+    EXTRA_ARGUMENTS = 4
+    EXCEPTION = 5
+end
+
+def parse(args)
+    options = Hash.new
+    options["export"] = nil
+    options["verbose"] = false
+
+    info = "Searches through provided directories, looking for " \
+        "private/public keys and certs. Then extracts, " \
+        "fingerprints, and attempts to match keys with certs."
+
+    parser = OptionParser.new do |opts|
+        opts.banner = "Usage: #{File.basename($0)} [OPTIONS] <dir>..."
+
+        opts.on(
+            "-e",
+            "--export=DIRECTORY",
+            "Export keys to specified directory"
+        ) do |directory|
+            options["export"] = Pathname.new(directory).expand_path
+        end
+
+        opts.on("-h", "--help", "Display this help message") do
+            puts opts
+            exit ThieveExit::GOOD
+        end
+
+        opts.on("--nocolor", "Disable colorized output") do
+            String.disable_colorization = true
+        end
+
+        opts.on(
+            "-v",
+            "--verbose",
+            "Show backtrace when error occurs"
+        ) do
+            options["verbose"] = true
+        end
+
+        opts.on("", info.word_wrap)
+    end
+
+    begin
+        parser.parse!
+    rescue OptionParser::InvalidOption => e
+        puts e.message
+        puts parser
+        exit ThieveExit::INVALID_OPTION
+    rescue OptionParser::InvalidArgument => e
+        puts e.message
+        puts parser
+        exit ThieveExit::INVALID_ARGUMENT
+    rescue OptionParser::MissingArgument => e
+        puts e.message
+        puts parser
+        exit ThieveExit::MISSING_ARGUMENT
+    end
+
+    if (args.length < 1)
+        puts parser
+        exit ThieveExit::MISSING_ARGUMENT
+    end
+
+    options["dirs"] = args
+
+    return options
+end
+
+options = parse(ARGV)
+
+begin
+    thieve = Thieve.new(!String.disable_colorization)
+    options["dirs"].each do |dir|
+        thieve.steal_from(dir)
+    end
+    thieve.find_matches
+
+    export_thread = nil
+    if (options["export"])
+        export_thread = Thread.new do
+            thieve.export_loot(options["export"])
+        end
+    end
+
+    puts thieve.to_s
+    export_thread.join if (export_thread)
+rescue Interrupt
+    # ^C
+    # Exit gracefully
+rescue Errno::EPIPE
+    # Do nothing. This can happen if piping to another program such as
+    # less. Usually if less is closed before we're done with STDOUT.
+rescue Thieve::Error => e
+    puts e.message
+    exit ThieveExit::EXCEPTION
+rescue Exception => e
+    $stderr.puts "Oops! Looks like an error has occured! Maybe the " \
+        "message below will help. If not, you can use the " \
+        "--verbose flag to get a backtrace.".word_wrap
+
+    $stderr.puts e.message.white.on_red
+    if (options["verbose"])
+        e.backtrace.each do |line|
+            $stderr.puts line.light_yellow
+        end
+    end
+    exit ThieveExit::EXCEPTION
+end
+exit ThieveExit::GOOD
