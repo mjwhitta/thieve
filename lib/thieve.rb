@@ -2,6 +2,7 @@ require "colorize"
 require "io/wait"
 require "json"
 require "pathname"
+require "scoobydoo"
 
 class Thieve
     attr_accessor :loot
@@ -99,6 +100,10 @@ class Thieve
     end
 
     def initialize(colorize = false)
+        if (ScoobyDoo.where_are_you("gpg").nil?)
+            raise Thieve::Error::ExecutableNotFound.new("gpg")
+        end
+
         @colorize = colorize
         @loot = Hash.new
     end

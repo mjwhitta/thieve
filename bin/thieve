@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require "colorize"
 require "io/wait"
 require "optparse"
 require "string"
@@ -108,9 +109,13 @@ rescue Thieve::Error => e
     puts e.message
     exit ThieveExit::EXCEPTION
 rescue Exception => e
-    $stderr.puts "Oops! Looks like an error has occured! Maybe the " \
-        "message below will help. If not, you can use the " \
-        "--verbose flag to get a backtrace.".word_wrap
+    $stderr.puts "Oops! Looks like an error has occured! If the " \
+        "error persists, file a bug at:".word_wrap
+    $stderr.puts
+    $stderr.puts "    https://gitlab.com/mjwhitta/thieve/issues"
+    $stderr.puts
+    $stderr.puts "Maybe the message below will help. If not, you " \
+        "can use the --verbose flag to get a backtrace.".word_wrap
 
     $stderr.puts e.message.white.on_red
     if (options["verbose"])
