@@ -25,13 +25,13 @@ class Thieve::KeyInfo
     attr_reader :type
 
     def colorize_file(file = @file)
-        return file if (!@colorize)
+        return file if (!Thieve.colorize?)
         return file.to_s.light_blue
     end
     private :colorize_file
 
     def colorize_key(key = @key)
-        return key if (!@colorize)
+        return key if (!Thieve.colorize?)
         return key.split("\n").map do |line|
             line.light_white
         end.join("\n")
@@ -40,7 +40,7 @@ class Thieve::KeyInfo
 
     def colorize_match(match = @match)
         return "" if (match.nil?)
-        return "Matches #{match}" if (!@colorize)
+        return "Matches #{match}" if (!Thieve.colorize?)
         return [
             "Matches".light_blue,
             match.light_green
@@ -55,8 +55,7 @@ class Thieve::KeyInfo
         end
     end
 
-    def initialize(file, type, key, colorize)
-        @colorize = colorize
+    def initialize(file, type, key)
         @ext = type.gsub(/ +/, ".").downcase
         @file = file
         @key = key

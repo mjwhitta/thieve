@@ -7,8 +7,13 @@ require "scoobydoo"
 class Thieve
     attr_accessor :loot
 
+    def self.colorize?
+        @@colorize ||= false
+        return @@colorize
+    end
+
     def colorize_type(type)
-        return type if (!@colorize)
+        return type if (!@@colorize)
         return type.light_cyan
     end
     private :colorize_type
@@ -53,15 +58,10 @@ class Thieve
                     @loot[type] ||= Array.new
                     begin
                         @loot[type].push(
-                            Thieve::KeyInfo.new(
-                                file,
-                                type,
-                                keydata,
-                                @colorize
-                            )
+                            Thieve::KeyInfo.new(file, type, keydata)
                         )
                     rescue Exception => e
-                        if (@colorize)
+                        if (@@colorize)
                             $stderr.puts file.to_s.light_blue
                             keydata.each_line do |line|
                                 $stderr.puts line.strip.light_yellow
@@ -104,7 +104,7 @@ class Thieve
             raise Thieve::Error::ExecutableNotFound.new("gpg")
         end
 
-        @colorize = colorize
+        @@colorize = colorize
         @loot = Hash.new
     end
 
