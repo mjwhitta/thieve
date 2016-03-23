@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
     s.name = "thieve"
-    s.version = "0.1.3"
+    s.version = "0.1.4"
     s.date = Time.new.strftime("%Y-%m-%d")
     s.summary = "Steal keys/certs"
     s.description =
