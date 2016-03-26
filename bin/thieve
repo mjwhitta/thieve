@@ -13,6 +13,7 @@ class ThieveExit
     MISSING_ARGUMENT = 3
     EXTRA_ARGUMENTS = 4
     EXCEPTION = 5
+    AMBIGUOUS_ARGUMENT = 6
 end
 
 def parse(args)
@@ -69,6 +70,10 @@ def parse(args)
         puts e.message
         puts parser
         exit ThieveExit::MISSING_ARGUMENT
+    rescue OptionParser::AmbiguousOption => e
+        puts e.message
+        puts parser
+        exit ThieveExit::AMBIGUOUS_ARGUMENT
     end
 
     if (args.length < 1)
