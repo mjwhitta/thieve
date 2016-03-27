@@ -3,7 +3,6 @@
 require "colorize"
 require "io/wait"
 require "optparse"
-require "string"
 require "thieve"
 
 class ThieveExit
@@ -26,7 +25,17 @@ def parse(args)
         "fingerprints, and attempts to match keys with certs."
 
     parser = OptionParser.new do |opts|
+        opts.summary_width = 23
+
         opts.banner = "Usage: #{File.basename($0)} [OPTIONS] <dir>..."
+
+        opts.on("", "DESCRIPTION")
+
+        info.scan(/\S.{0,#{76}}\S(?=\s|$)|\S+/).each do |line|
+            opts.on("    #{line}")
+        end
+
+        opts.on("", "OPTIONS")
 
         opts.on(
             "-e",
@@ -52,8 +61,6 @@ def parse(args)
         ) do
             options["verbose"] = true
         end
-
-        opts.on("", info.word_wrap)
     end
 
     begin
@@ -116,12 +123,13 @@ rescue Thieve::Error => e
 rescue Exception => e
     $stderr.puts
     $stderr.puts "Oops! Looks like an error has occured! If the " \
-        "error persists, file a bug at:".word_wrap
+        "error persists, file a bug at:"
     $stderr.puts
     $stderr.puts "    https://gitlab.com/mjwhitta/thieve/issues"
     $stderr.puts
     $stderr.puts "Maybe the message below will help. If not, you " \
-        "can use the --verbose flag to get a backtrace.".word_wrap
+        "can use the --verbose flag to get"
+    $stderr.puts "a backtrace."
 
     $stderr.puts e.message.white.on_red
     if (options["verbose"])
