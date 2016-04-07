@@ -31,7 +31,7 @@ def parse(args)
 
         opts.on("", "DESCRIPTION")
 
-        info.scan(/\S.{0,#{76}}\S(?=\s|$)|\S+/).each do |line|
+        info.scan(/\S.{0,76}\S(?=\s|$)|\S+/).each do |line|
             opts.on("    #{line}")
         end
 
