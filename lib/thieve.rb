@@ -1,4 +1,4 @@
-require "colorize"
+require "hilighter"
 require "io/wait"
 require "json"
 require "pathname"
@@ -6,17 +6,6 @@ require "scoobydoo"
 
 class Thieve
     attr_accessor :loot
-
-    def self.colorize?
-        @@colorize ||= false
-        return @@colorize
-    end
-
-    def colorize_type(type)
-        return type if (!@@colorize)
-        return type.light_cyan
-    end
-    private :colorize_type
 
     def export_loot(dir)
         exported = Hash.new
@@ -61,7 +50,7 @@ class Thieve
                             Thieve::KeyInfo.new(file, type, keydata)
                         )
                     rescue Exception => e
-                        if (@@colorize)
+                        if (@@hilight)
                             $stderr.puts file.to_s.light_blue
                             keydata.each_line do |line|
                                 $stderr.puts line.strip.light_yellow
@@ -99,12 +88,23 @@ class Thieve
         end
     end
 
-    def initialize(colorize = false)
+    def self.hilight?
+        @@hilight ||= false
+        return @@hilight
+    end
+
+    def hilight_type(type)
+        return type if (!@@hilight)
+        return type.light_cyan
+    end
+    private :hilight_type
+
+    def initialize(hilight = false)
         if (ScoobyDoo.where_are_you("gpg").nil?)
             raise Thieve::Error::ExecutableNotFound.new("gpg")
         end
 
-        @@colorize = colorize
+        @@hilight = hilight
         @loot = Hash.new
     end
 
@@ -129,7 +129,7 @@ class Thieve
     def summarize_loot
         ret = Array.new
         @loot.each do |type, keys|
-            ret.push(colorize_type(type))
+            ret.push(hilight_type(type))
             keys.each do |key|
                 ret.push("#{key.to_s}\n")
             end

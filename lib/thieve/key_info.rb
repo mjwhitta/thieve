@@ -24,36 +24,36 @@ class Thieve::KeyInfo
     # Type of key/cert
     attr_reader :type
 
-    def colorize_file(file = @file)
-        return file if (!Thieve.colorize?)
-        return file.to_s.light_blue
-    end
-    private :colorize_file
-
-    def colorize_key(key = @key)
-        return key if (!Thieve.colorize?)
-        return key.split("\n").map do |line|
-            line.light_white
-        end.join("\n")
-    end
-    private :colorize_key
-
-    def colorize_match(match = @match)
-        return "" if (match.nil?)
-        return "Matches #{match}" if (!Thieve.colorize?)
-        return [
-            "Matches".light_blue,
-            match.light_green
-        ].join(" ")
-    end
-    private :colorize_match
-
     def export(directory)
         FileUtils.mkdir_p(directory)
         File.open("#{directory}/#{@fingerprint}.#{@ext}", "w") do |f|
             f.write(@key)
         end
     end
+
+    def hilight_file(file = @file)
+        return file if (!Thieve.hilight?)
+        return file.to_s.light_blue
+    end
+    private :hilight_file
+
+    def hilight_key(key = @key)
+        return key if (!Thieve.hilight?)
+        return key.split("\n").map do |line|
+            line.light_white
+        end.join("\n")
+    end
+    private :hilight_key
+
+    def hilight_match(match = @match)
+        return "" if (match.nil?)
+        return "Matches #{match}" if (!Thieve.hilight?)
+        return [
+            "Matches".light_blue,
+            match.light_green
+        ].join(" ")
+    end
+    private :hilight_match
 
     def initialize(file, type, key)
         @ext = type.gsub(/ +/, ".").downcase
@@ -153,9 +153,9 @@ class Thieve::KeyInfo
 
     def to_s
         ret = Array.new
-        ret.push(colorize_file)
-        ret.push(colorize_key)
-        ret.push(colorize_match) if (@match)
+        ret.push(hilight_file)
+        ret.push(hilight_key)
+        ret.push(hilight_match) if (@match)
         return ret.join("\n")
     end
 end

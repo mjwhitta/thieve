@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require "colorize"
+require "hilighter"
 require "io/wait"
 require "optparse"
 require "thieve"
@@ -51,7 +51,7 @@ def parse(args)
         end
 
         opts.on("--nocolor", "Disable colorized output") do
-            String.disable_colorization = true
+            Hilighter.disable
         end
 
         opts.on(
@@ -96,7 +96,7 @@ end
 options = parse(ARGV)
 
 begin
-    thieve = Thieve.new(!String.disable_colorization)
+    thieve = Thieve.new(!Hilighter.disable?)
     options["dirs"].each do |dir|
         thieve.steal_from(dir)
     end

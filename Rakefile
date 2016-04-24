@@ -1,4 +1,4 @@
-require "colorize"
+require "hilighter"
 
 task :default => :gem
 
@@ -8,9 +8,9 @@ task :clean do
     system("chmod -R go-rwx bin lib")
 end
 
-desc "Show colors from colorize"
+desc "Show colors from hilighter"
 task :colors do
-    String.color_samples
+    Hilighter.sample
 end
 
 desc "Build gem"
