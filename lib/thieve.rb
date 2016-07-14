@@ -73,6 +73,7 @@ class Thieve
     private :extract_from
 
     def find_matches
+        return if (@loot["CERTIFICATE"].nil?)
         @loot["CERTIFICATE"].each do |cert|
             next if (cert.openssl.nil?)
             @loot.each do |type, keys|
