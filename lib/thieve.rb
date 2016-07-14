@@ -1,3 +1,4 @@
+require "fileutils"
 require "hilighter"
 require "io/wait"
 require "json"
@@ -17,6 +18,8 @@ class Thieve
                     key.to_json
             end
         end
+
+        FileUtils.mkdir_p(dir)
         File.open("#{dir}/loot.json", "w") do |f|
             f.write(JSON.pretty_generate(exported))
         end
