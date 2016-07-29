@@ -77,15 +77,19 @@ class Thieve
 
     def find_matches
         return if (@loot["CERTIFICATE"].nil?)
-        @loot["CERTIFICATE"].each do |cert|
-            next if (cert.openssl.nil?)
+        @loot["CERTIFICATE"].each do |c|
+            next if (c.openssl.nil?)
             @loot.each do |type, keys|
                 next if (type == "CERTIFICATE")
-                keys.each do |key|
-                    next if (key.openssl.nil?)
-                    if (cert.openssl.check_private_key(key.openssl))
-                        cert.match = "#{key.fingerprint}.#{key.ext}"
-                        key.match = "#{cert.fingerprint}.#{cert.ext}"
+                keys.each do |k|
+                    next if (k.openssl.nil?)
+                    begin
+                        if (c.openssl.check_private_key(k.openssl))
+                            c.match = "#{k.fingerprint}.#{k.ext}"
+                            k.match = "#{c.fingerprint}.#{c.ext}"
+                        end
+                    rescue
+                        # Do nothing. Private key is needed.
                     end
                 end
             end
