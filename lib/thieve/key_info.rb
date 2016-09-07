@@ -114,6 +114,11 @@ class Thieve::KeyInfo
                 end
             end
             @openssl = nil
+        when "PGP SIGNATURE"
+            # Not really sure what to do with this
+            @ext = "asc"
+            @fingerprint = Digest::SHA256.hexdigest(@file.to_s + @key)
+            @openssl = nil
         when "PRIVATE KEY"
             @openssl = OpenSSL::PKey::RSA.new(@key)
             @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
