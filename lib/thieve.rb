@@ -47,12 +47,15 @@ class Thieve
         key = ""
 
         File.open(file).each do |line|
-            start = true if (line.include?("BEGIN"))
+            if (line.include?("-----BEGIN"))
+                start = true
+                key = ""
+            end
 
             # Don't include newlines for now
             key += line.unpack("C*").pack("U*").strip if (start)
 
-            if (line.include?("END"))
+            if (line.include?("-----END"))
                 # Remove " + " or ' + '
                 key.gsub!(%r{["'] *\+ *["']?|["']? *\+ *["']}, "")
 
@@ -102,7 +105,6 @@ class Thieve
                 end
 
                 start = false
-                key = ""
             end
         end
     end
