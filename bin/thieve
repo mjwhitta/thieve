@@ -18,6 +18,7 @@ end
 def parse(args)
     options = Hash.new
     options["export"] = nil
+    options["ignore"] = Array.new
     options["verbose"] = false
 
     info = "Searches through provided directories, looking for " \
@@ -48,6 +49,14 @@ def parse(args)
         opts.on("-h", "--help", "Display this help message") do
             puts opts
             exit ThieveExit::GOOD
+        end
+
+        opts.on(
+            "-i",
+            "--ignore=PATTERN",
+            "Ignore dirs/files matching PATTERN"
+        ) do |pattern|
+            options["ignore"].push(pattern)
         end
 
         opts.on("--nocolor", "Disable colorized output") do
@@ -98,7 +107,7 @@ options = parse(ARGV)
 begin
     thieve = Thieve.new(!Hilighter.disable?)
     options["dirs"].each do |dir|
-        thieve.steal_from(dir)
+        thieve.steal_from(dir, options["ignore"])
     end
     thieve.find_matches
 

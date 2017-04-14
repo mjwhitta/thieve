@@ -30,38 +30,59 @@ class Thieve
         key = ""
 
         File.open(file).each do |line|
-            if (line.include?("BEGIN"))
-                start = true
-            end
+            start = true if (line.include?("BEGIN"))
 
-            if (start)
-                key += line.unpack("C*").pack("U*").lstrip.rstrip
-                if (key.end_with?("\\n\\"))
-                    key = key[0..-4]
-                end
-                key += "\\n"
-            end
+            # Don't include newlines for now
+            key += line.unpack("C*").pack("U*").strip if (start)
 
             if (line.include?("END"))
-                key.scan(/(-----BEGIN(.*)[^-]+-----END\2)/) do |m, t|
-                    keydata = m.gsub(/\\+n/, "\n").chomp
-                    type = t.gsub(/-----.*/, "").strip
+                # Remove " + " or ' + '
+                key.gsub!(%r{["'] *\+ *["']}, "")
+
+                # Remove bad characters
+                key.gsub!(%r{[^-A-Za-z0-9+/= ]+}, "")
+
+                # Find base64 key (accept spaces as we'll remove those
+                # later)
+                key_regex = [
+                    "(",
+                    "-----BEGIN ([A-Za-z0-9 ]+)-----",
+                    "([A-Za-z0-9+/= ]+)",
+                    "-----END \\2-----",
+                    ")"
+                ].join
+
+                # Scan for valid key
+                key.scan(%r{#{key_regex}}) do |m, type, k|
+                    # Remove spaces from key
+                    k.gsub!(/ +/, "")
+
+                    # Format the keydata
+                    keydata = k.scan(/.{,64}/).keep_if do |l|
+                        !l.empty?
+                    end
+                    keydata.insert(0, "-----BEGIN #{type}-----")
+                    keydata.push("-----END #{type}-----")
 
                     @loot[type] ||= Array.new
                     begin
                         @loot[type].push(
-                            Thieve::KeyInfo.new(file, type, keydata)
+                            Thieve::KeyInfo.new(
+                                file,
+                                type,
+                                keydata.join("\n")
+                            )
                         )
                     rescue Exception => e
                         if (@@hilight)
                             $stderr.puts file.to_s.light_blue
-                            keydata.each_line do |line|
-                                $stderr.puts line.strip.light_yellow
+                            keydata.each do |l|
+                                $stderr.puts l.light_yellow
                             end
                             $stderr.puts e.message.white.on_red
                         else
                             $stderr.puts file
-                            $stderr.puts keydata
+                            $stderr.puts keydata.join("\n")
                             $stderr.puts e.message
                         end
                         $stderr.puts
@@ -116,8 +137,13 @@ class Thieve
         @loot = Hash.new
     end
 
-    def steal_from(filename)
+    def steal_from(filename, ignores = Array.new)
         file = Pathname.new(filename).expand_path
+
+        skip = ignores.any? do |ignore|
+            file.to_s.match(%r{#{ignore}})
+        end
+        return @loot if (skip)
 
         if (file.directory?)
             files = Dir[File.join(file, "**", "*")].reject do |f|
@@ -125,6 +151,11 @@ class Thieve
             end
 
             files.each do |f|
+                skip = ignores.any? do |ignore|
+                    f.to_s.match(%r{#{ignore}})
+                end
+                next if (skip)
+
                 extract_from(Pathname.new(f).expand_path)
             end
         else

@@ -48,15 +48,12 @@ class Thieve::KeyInfo
     def hilight_match(match = @match)
         return "" if (match.nil?)
         return "Matches #{match}" if (!Thieve.hilight?)
-        return [
-            "Matches".light_blue,
-            match.light_green
-        ].join(" ")
+        return ["Matches".light_blue, match.light_green].join(" ")
     end
     private :hilight_match
 
     def initialize(file, type, key)
-        @ext = type.gsub(/ +/, ".").downcase
+        @ext = type.gsub(/ +/, "_").downcase
         @file = file
         @key = key
         @match = nil
@@ -116,7 +113,6 @@ class Thieve::KeyInfo
             @openssl = nil
         when "PGP SIGNATURE"
             # Not really sure what to do with this
-            @ext = "asc"
             @fingerprint = Digest::SHA256.hexdigest(@file.to_s + @key)
             @openssl = nil
         when "PRIVATE KEY"
@@ -140,7 +136,6 @@ class Thieve::KeyInfo
                 @openssl.to_der
             ).to_s
         else
-            @ext = "unknown"
             @fingerprint = Digest::SHA256.hexdigest(@file.to_s + @key)
             @openssl = nil
         end
