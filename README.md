@@ -17,10 +17,18 @@ $ gem install thieve
 ```
 $ thieve --help
 Usage: thieve [OPTIONS] <dir>...
-    -e, --export=DIRECTORY          Export keys to specified directory
-    -h, --help                      Display this help message
-        --nocolor                   Disable colorized output
-    -v, --verbose                   Show backtrace when error occurs
+
+DESCRIPTION
+    Searches through provided directories, looking for private/public
+    keys and certs. Then extracts, fingerprints, and attempts to match
+    keys with certs.
+
+OPTIONS
+    -e, --export=DIRECTORY  Export keys to specified directory
+    -h, --help              Display this help message
+    -i, --ignore=PATTERN    Ignore dirs/files matching PATTERN
+        --nocolor           Disable colorized output
+    -v, --verbose           Show backtrace when error occurs
 ```
 
 ## Links
