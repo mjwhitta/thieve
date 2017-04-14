@@ -1,3 +1,4 @@
+require "base64"
 require "fileutils"
 require "hilighter"
 require "io/wait"
@@ -7,6 +8,22 @@ require "scoobydoo"
 
 class Thieve
     attr_accessor :loot
+
+    def display_exception(e, file, keydata)
+        if (@@hilight)
+            $stderr.puts file.to_s.light_blue
+            keydata.each do |l|
+                $stderr.puts l.light_yellow
+            end
+            $stderr.puts e.message.white.on_red
+        else
+            $stderr.puts file
+            $stderr.puts keydata.join("\n")
+            $stderr.puts e.message
+        end
+        $stderr.puts
+    end
+    private :display_exception
 
     def export_loot(dir)
         exported = Hash.new
@@ -37,7 +54,7 @@ class Thieve
 
             if (line.include?("END"))
                 # Remove " + " or ' + '
-                key.gsub!(%r{["'] *\+ *["']}, "")
+                key.gsub!(%r{["'] *\+ *["']?|["']? *\+ *["']}, "")
 
                 # Remove bad characters
                 key.gsub!(%r{[^-A-Za-z0-9+/= ]+}, "")
@@ -54,6 +71,9 @@ class Thieve
 
                 # Scan for valid key
                 key.scan(%r{#{key_regex}}) do |m, type, k|
+                    # Ignore breakpad microdumps
+                    next if (type.match(/BREAKPAD MICRODUMP/))
+
                     # Remove spaces from key
                     k.gsub!(/ +/, "")
 
@@ -64,8 +84,11 @@ class Thieve
                     keydata.insert(0, "-----BEGIN #{type}-----")
                     keydata.push("-----END #{type}-----")
 
-                    @loot[type] ||= Array.new
                     begin
+                        # Ensure key is base64 data
+                        Base64.strict_decode64(k)
+
+                        @loot[type] ||= Array.new
                         @loot[type].push(
                             Thieve::KeyInfo.new(
                                 file,
@@ -74,18 +97,7 @@ class Thieve
                             )
                         )
                     rescue Exception => e
-                        if (@@hilight)
-                            $stderr.puts file.to_s.light_blue
-                            keydata.each do |l|
-                                $stderr.puts l.light_yellow
-                            end
-                            $stderr.puts e.message.white.on_red
-                        else
-                            $stderr.puts file
-                            $stderr.puts keydata.join("\n")
-                            $stderr.puts e.message
-                        end
-                        $stderr.puts
+                        display_exception(e, file, keydata)
                     end
                 end
 

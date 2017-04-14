@@ -57,87 +57,49 @@ class Thieve::KeyInfo
         @file = file
         @key = key
         @match = nil
+        @openssl = nil
         @type = type
 
         case @type
         when "CERTIFICATE"
             @openssl = OpenSSL::X509::Certificate.new(@key)
-            @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
-                @openssl.to_der
-            ).to_s
-        when "CERTIFICATE REQUEST"
+        when /^(NEW )?CERTIFICATE REQUEST$/
             @openssl = OpenSSL::X509::Request.new(@key)
-            @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
-                @openssl.to_der
-            ).to_s
-        when "DH PARAMETERS"
+        when "DH PARAMETERS", "DH PRIVATE KEY"
             @openssl = OpenSSL::PKey::DH.new(@key)
-            @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
-                @openssl.public_key.to_der
-            ).to_s
-        when "DH PRIVATE KEY"
-            @openssl = OpenSSL::PKey::DH.new(@key)
-            @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
-                @openssl.public_key.to_der
-            ).to_s
         when "DSA PRIVATE KEY"
             @openssl = OpenSSL::PKey::DSA.new(@key)
-            @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
-                @openssl.public_key.to_der
-            ).to_s
-        when "EC PARAMETERS"
+        when "EC PARAMETERS", "EC PRIVATE KEY"
             @openssl = OpenSSL::PKey::EC.new(@key)
-            @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
-                @openssl.public_key.to_der
-            ).to_s
-        when "EC PRIVATE KEY"
-            @openssl = OpenSSL::PKey::EC.new(@key)
-            @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
-                @openssl.public_key.to_der
-            ).to_s
-        when "PGP PRIVATE KEY BLOCK"
+        when /^PGP (PRIVATE|PUBLIC) KEY BLOCK$/
             command = "gpg --with-fingerprint << EOF\n#{@key}\nEOF"
             %x(#{command}).each_line do |line|
                 line.match(/Key fingerprint = (.*)/) do |m|
                     @fingerprint = m[1].gsub(" ", "").downcase
                 end
             end
-            @openssl = nil
-        when "PGP PUBLIC KEY BLOCK"
-            command = "gpg --with-fingerprint << EOF\n#{@key}\nEOF"
-            %x(#{command}).each_line do |line|
-                line.match(/Key fingerprint = (.*)/) do |m|
-                    @fingerprint = m[1].gsub(" ", "").downcase
-                end
-            end
-            @openssl = nil
-        when "PGP SIGNATURE"
+        #when "PGP SIGNATURE"
             # Not really sure what to do with this
-            @fingerprint = Digest::SHA256.hexdigest(@file.to_s + @key)
-            @openssl = nil
-        when "PRIVATE KEY"
+            # TODO
+           #@fingerprint = Digest::SHA256.hexdigest(@file.to_s + @key)
+        when "PKCS5"
+            @openssl = OpenSSL::PKCS5.new(@key)
+        when "PKCS7"
+            @openssl = OpenSSL::PKCS7.new(@key)
+        when "PKCS12"
+            @openssl = OpenSSL::PKCS12.new(@key)
+        when "PRIVATE KEY", "PUBLIC KEY", "RSA PRIVATE KEY"
             @openssl = OpenSSL::PKey::RSA.new(@key)
-            @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
-                @openssl.public_key.to_der
-            ).to_s
-        when "PUBLIC KEY"
-            @openssl = OpenSSL::PKey::RSA.new(@key)
-            @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
-                @openssl.public_key.to_der
-            ).to_s
-        when "RSA PRIVATE KEY"
-            @openssl = OpenSSL::PKey::RSA.new(@key)
-            @fingerprint = OpenSSL::Digest::SHA1.hexdigest(
-                @openssl.public_key.to_der
-            ).to_s
         when "X509 CRL"
             @openssl = OpenSSL::X509::CRL.new(@key)
+        else
+            @fingerprint = Digest::SHA256.hexdigest(@file.to_s + @key)
+        end
+
+        if (@openssl)
             @fingerprint = OpenSSL::Digest::SHA1.new(
                 @openssl.to_der
             ).to_s
-        else
-            @fingerprint = Digest::SHA256.hexdigest(@file.to_s + @key)
-            @openssl = nil
         end
     end
 
