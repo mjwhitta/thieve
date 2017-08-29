@@ -25,13 +25,19 @@ class Thieve
     end
     private :display_exception
 
-    def export_loot(dir)
+    def export_loot(dir, priv_only = @private)
         exported = Hash.new
         @loot.each do |type, keys|
+            next if (priv_only && !type.match(/CERTIFICATE|PRIVATE/))
+
             keys.each do |key|
+                if (priv_only && type.match(/CERTIFICATE/))
+                    next if (key.match.nil?)
+                end
+
                 key.export(dir)
-                exported[key.type] ||= Hash.new
-                exported[key.type]["#{key.fingerprint}.#{key.ext}"] =
+                exported[type] ||= Hash.new
+                exported[type]["#{key.fingerprint}.#{key.ext}"] =
                     key.to_json
             end
         end
@@ -43,17 +49,32 @@ class Thieve
     end
 
     def extract_from(file)
-        start = false
+        footer = ""
+        headers = Array.new
         key = ""
+        start = false
 
         File.open(file).each do |line|
             if (line.include?("-----BEGIN"))
-                start = true
+                footer = ""
+                headers.clear
                 key = ""
+                start = true
             end
 
-            # Don't include newlines for now
-            key += line.unpack("C*").pack("U*").strip if (start)
+            if (start)
+                # Don't include newlines for now
+                line = line.unpack("C*").pack("U*").strip
+
+                case line
+                when /^=[^=]+$/
+                    footer = line
+                when /^.+:.+$/
+                    headers.push(line)
+                else
+                    key += line
+                end
+            end
 
             if (line.include?("-----END"))
                 # Remove " + " or ' + '
@@ -84,7 +105,20 @@ class Thieve
                     keydata = k.scan(/.{,64}/).keep_if do |l|
                         !l.empty?
                     end
+
+                    # Prepend headers
+                    if (headers.any?)
+                        keydata.insert(0, "")
+                        keydata.insert(0, headers.join("\n"))
+                    end
+
+                    # Append footer
+                    keydata.push(footer) if (!footer.empty?)
+
+                    # Prepend BEGIN
                     keydata.insert(0, "-----BEGIN #{type}-----")
+
+                    # Append END
                     keydata.push("-----END #{type}-----")
 
                     begin
@@ -149,6 +183,11 @@ class Thieve
 
         @@hilight = hilight
         @loot = Hash.new
+        @private = false
+    end
+
+    def only_private(priv)
+        @private = priv
     end
 
     def steal_from(filename, ignores = Array.new)
@@ -179,11 +218,17 @@ class Thieve
         return @loot
     end
 
-    def summarize_loot
+    def summarize_loot(priv_only = @private)
         ret = Array.new
         @loot.each do |type, keys|
+            next if (priv_only && !type.match(/CERTIFICATE|PRIVATE/))
+
             ret.push(hilight_type(type))
             keys.each do |key|
+                if (priv_only && type.match(/CERTIFICATE/))
+                    next if (key.match.nil?)
+                end
+
                 ret.push("#{key.to_s}\n")
             end
         end

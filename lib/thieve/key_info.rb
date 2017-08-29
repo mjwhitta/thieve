@@ -89,7 +89,9 @@ class Thieve::KeyInfo
         when "PKCS12"
             @openssl = OpenSSL::PKCS12.new(@key)
         when "PRIVATE KEY", "PUBLIC KEY", "RSA PRIVATE KEY"
-            @openssl = OpenSSL::PKey::RSA.new(@key)
+            if (!@key.match(/ENCRYPTED/))
+                @openssl = OpenSSL::PKey::RSA.new(@key)
+            end
         when "X509 CRL"
             @openssl = OpenSSL::X509::CRL.new(@key)
         else

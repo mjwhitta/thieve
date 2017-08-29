@@ -19,15 +19,16 @@ $ thieve --help
 Usage: thieve [OPTIONS] <dir>...
 
 DESCRIPTION
-    Searches through provided directories, looking for private/public
-    keys and certs. Then extracts, fingerprints, and attempts to match
-    keys with certs.
+    Searches through provided directories, looking for private/public keys and
+    certs. Then extracts, fingerprints, and attempts to match keys with certs.
 
 OPTIONS
     -e, --export=DIRECTORY  Export keys to specified directory
     -h, --help              Display this help message
-    -i, --ignore=PATTERN    Ignore dirs/files matching PATTERN
+    -i, --ignore=REGEX      Ignore dirs/files matching REGEX
         --nocolor           Disable colorized output
+    -p, --private-only      Only export/show private keys and matching certificates
+        --version           Show version
     -v, --verbose           Show backtrace when error occurs
 ```
 
