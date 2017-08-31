@@ -181,6 +181,10 @@ class Thieve
             raise Thieve::Error::ExecutableNotFound.new("gpg")
         end
 
+        if (ScoobyDoo.where_are_you("grep").nil?)
+            raise Thieve::Error::ExecutableNotFound.new("grep")
+        end
+
         @@hilight = hilight
         @loot = Hash.new
         @private = false
@@ -190,28 +194,26 @@ class Thieve
         @private = priv
     end
 
-    def steal_from(filename, ignores = Array.new)
-        file = Pathname.new(filename).expand_path
+    def steal_from(filename, ignores = Array.new, binaries = false)
+        cmd = ["\\grep"]
+        cmd.push("-a") if (binaries)
 
-        skip = ignores.any? do |ignore|
-            file.to_s.match(%r{#{ignore}})
+        ignores.each do |ignore|
+            cmd.push("--exclude-dir \"#{ignore}\"")
+            cmd.push("--exclude \"*#{ignore}*\"")
         end
-        return @loot if (skip)
 
-        if (file.directory?)
-            files = Dir[File.join(file, "**", "*")].reject do |f|
-                Pathname.new(f).directory? || Pathname.new(f).symlink?
+        cmd.push("-I") if (!binaries)
+        cmd.push("-lRs -- \"-----BEGIN\" #{filename}")
+
+        %x(#{cmd.join(" ")}).each_line do |f|
+            file = Pathname.new(f.strip).expand_path
+
+            skip = ignores.any? do |ignore|
+                file.to_s.match(%r{#{ignore}})
             end
+            next if (skip)
 
-            files.each do |f|
-                skip = ignores.any? do |ignore|
-                    f.to_s.match(%r{#{ignore}})
-                end
-                next if (skip)
-
-                extract_from(Pathname.new(f).expand_path)
-            end
-        else
             extract_from(file)
         end
 

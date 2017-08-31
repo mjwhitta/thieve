@@ -17,6 +17,7 @@ end
 
 def parse(args)
     options = Hash.new
+    options["binaries"] = false
     options["export"] = nil
     options["ignore"] = Array.new
     options["private"] = false
@@ -33,11 +34,19 @@ def parse(args)
 
         opts.on("", "DESCRIPTION")
 
-        info.scan(/\S.{0,76}\S(?=\s|$)|\S+/).each do |line|
+        info.scan(/\S.{0,66}\S(?=\s|$)|\S+/).each do |line|
             opts.on("    #{line}")
         end
 
         opts.on("", "OPTIONS")
+
+        opts.on(
+            "-b",
+            "--binaries",
+            "Search binary files (may take a long time)"
+        ) do
+            options["binaries"] = true
+        end
 
         opts.on(
             "-e",
@@ -67,7 +76,8 @@ def parse(args)
         opts.on(
             "-p",
             "--private-only",
-            "Only export/show private keys and matching certificates"
+            "Only export/show private keys and matching",
+            "certificates"
         ) do
             options["private"] = true
         end
@@ -123,7 +133,7 @@ options = parse(ARGV)
 begin
     thieve = Thieve.new(!Hilighter.disable?)
     options["dirs"].each do |dir|
-        thieve.steal_from(dir, options["ignore"])
+        thieve.steal_from(dir, options["ignore"], options["binaries"])
     end
     thieve.find_matches
 
