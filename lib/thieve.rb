@@ -200,7 +200,7 @@ class Thieve
 
         ignores.each do |ignore|
             cmd.push("--exclude-dir \"#{ignore}\"")
-            cmd.push("--exclude \"*#{ignore}*\"")
+            cmd.push("--exclude \"#{ignore}\"")
         end
 
         cmd.push("-I") if (!binaries)
@@ -210,7 +210,7 @@ class Thieve
             file = Pathname.new(f.strip).expand_path
 
             skip = ignores.any? do |ignore|
-                file.to_s.match(%r{#{ignore}})
+                File.fnmatch(ignore, file.to_s)
             end
             next if (skip)
 

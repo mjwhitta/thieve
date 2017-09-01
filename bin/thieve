@@ -63,10 +63,10 @@ def parse(args)
 
         opts.on(
             "-i",
-            "--ignore=REGEX",
-            "Ignore dirs/files matching REGEX"
-        ) do |regex|
-            options["ignore"].push(regex)
+            "--ignore=GLOB",
+            "Ignore dirs/files matching GLOB"
+        ) do |glob|
+            options["ignore"].push(glob)
         end
 
         opts.on("--nocolor", "Disable colorized output") do
