@@ -204,7 +204,7 @@ class Thieve
         end
 
         cmd.push("-I") if (!binaries)
-        cmd.push("-lRs -- \"-----BEGIN\" #{filename}")
+        cmd.push("-lrs -- \"-----BEGIN\" #{filename}")
 
         %x(#{cmd.join(" ")}).each_line do |f|
             file = Pathname.new(f.strip).expand_path
