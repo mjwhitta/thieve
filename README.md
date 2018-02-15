@@ -8,7 +8,7 @@ attempts to match keys with certs.
 
 ## How to install
 
-```bash
+```
 $ gem install thieve
 ```
 
@@ -34,7 +34,6 @@ OPTIONS
 
 ## Links
 
-- [Homepage](https://mjwhitta.github.io/thieve)
 - [Source](https://gitlab.com/mjwhitta/thieve)
 - [Mirror](https://github.com/mjwhitta/thieve)
 - [RubyGems](https://rubygems.org/gems/thieve)
