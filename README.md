@@ -35,7 +35,6 @@ OPTIONS
 ## Links
 
 - [Source](https://gitlab.com/mjwhitta/thieve)
-- [Mirror](https://github.com/mjwhitta/thieve)
 - [RubyGems](https://rubygems.org/gems/thieve)
 
 ## TODO
