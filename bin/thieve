@@ -162,7 +162,7 @@ rescue Exception => e
     $stderr.puts "Oops! Looks like an error has occured! If the " \
         "error persists, file a bug at:"
     $stderr.puts
-    $stderr.puts "    https://gitlab.com/mjwhitta/thieve/issues"
+    $stderr.puts "    https://github.com/mjwhitta/thieve/issues"
     $stderr.puts
     $stderr.puts "Maybe the message below will help. If not, you " \
         "can use the --verbose flag to get"
